@@ -6,8 +6,8 @@ exports.pay = ( req , res , next ) => {
         subject:req.body.subject,
         content:req.body.content,
         email:req.user.user_email,
-        orderId:req.body.orderId,
-        seatId:req.body.seatId
+        seatId:req.body.seatId,
+        movieId:req.body.filmId
     }
     next( )
 }

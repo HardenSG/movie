@@ -9,28 +9,44 @@ const alipay = require("../pay/pay")
 exports.pay = async ( req ,  res ) => {
 
     //解构出变量
-    const { url , money , subject , content  , email , seatId , orderId } = req.message
+    const { url , money , subject , content  , email , seatId , movieId } = req.message
     
-    //查询出该订单是否存在
-    const orderFlag = await db.searchOrder( orderId )
+    //查询此人是否还有其他未支付的订单
+    const orderFlag = await db.searchOrder( email )
 
     //订单存在，返回数据库的订单url
-    if( orderFlag != 1 ) {
+    if( orderFlag == 1 ) {
         res.send({
-            status: 200,
-            msg: "支付发起",        
-            url:JSON.stringify( orderFlag )
+            status: 300,
+            msg: "你有未支付的订单"     
         })
 
         //退出
         return
     }
 
-    // let strCount = ` SELECT COUNT(*) FROM movie_order `
+    const seat = await db.searchSeat( content )
 
-    // const orderId = await db.insert( strCount , ( result ) => {
-    //     return result[0]
-    // } )
+    //查询所选座椅是否有被选的情况
+    if( seat == 1 ){
+        res.send({
+            status: 301,
+            msg: "座位已被选中"     
+        })
+        return 
+    }
+
+    let strCount = ` SELECT COUNT(*) as num FROM movie_order `
+
+    const orderId = await db.insert( strCount , ( result ) => {
+        return ++result[0].num
+    } )
+    
+    let addHots = `UPDATE filmManage SET hots = hots + 1 WHERE movieId = ${ movieId }`
+
+    db.insert( addHots ,( result ) =>{
+        // console.log(result);
+    })
 
     //订单不存在，创建支付请求，返回url
     const result = await alipay.exec( url , money , subject , content ,orderId)
@@ -46,7 +62,7 @@ exports.pay = async ( req ,  res ) => {
     }
 
     //插入数据字符串
-    let str = `INSERT INTO movie_order ( orderId, content, subject,url,status,email) VALUES( "${order.orderId }",'${ order.content }',"${ order.subject }","${ order.url }" ,"${ order.status }","${ order.email }" )`
+    let str = `INSERT INTO movie_order ( orderId, content, subject,url,status,email,filmId) VALUES( "${order.orderId }",'${ order.content }',"${ order.subject }","${ order.url }" ,"${ order.status }","${ order.email }",${ movieId } )`
 
     //操作数据库
     db.insert( str , ( resu ) => {
@@ -74,18 +90,32 @@ exports.pay = async ( req ,  res ) => {
  */
 exports.payAsync = ( req , res ) => {
 
-    console.log(req.body);
-
-    const { trade_status , out_trade_no , body} = req.body
+    const { trade_status , out_trade_no, body} = req.body
 
     if( trade_status == 'TRADE_SUCCESS' ){
 
-        let str = ` UPDATE movie_order SET status = "已支付" WHERE orderId = ${ out_trade_no }`
-
-        const arr  = JSON.parse( body )
+        let str = ` UPDATE movie_order SET status = "已支付" WHERE orderId = "${ out_trade_no }"`
+         
+        const arr = JSON.parse( body )
+        
+        let b = []
+    
+        for (let index = 0; index < arr.length; index++) {
+            b.push( arr[index] )
+        }
+    
+        const params = b.join(",")
+    
+        let lockSeat = `UPDATE seat SET status = 2 WHERE status != 0 and seatId IN (${ params })`
+    
+        db.insert( lockSeat , ( result ) => {
+            console.log("111")
+            console.log(result)
+        })
+      
 
         db.insert( str , ( result ) =>{
-            console.log(result);
+            // console.log(result);
         } )
 
     }
@@ -173,13 +203,7 @@ exports.getMovieDetail = ( req , res ) => {
     
     const { id } = req.query
 
-    let addHots = `UPDATE filmManage SET hots = 2 WHERE movieId = ${ id }`
-
-    db.insert( addHots ,( result ) =>{
-        console.log(result);
-    })
-
-    let str = `SELECT * FROM (SELECT * FROM filmManage WHERE movieId = ${ id }) f INNER JOIN john_movie movie ON f.movieId = movie.id `
+    let str = `SELECT * FROM ( SELECT * FROM filmManage WHERE movieId = ${ id }) f INNER JOIN john_movie movie ON f.movieId = movie.id `
 
     db.insert( str ,( result ) =>{
         res.send({
@@ -210,6 +234,30 @@ exports.getOrder = ( req , res ) => {
     })
 
 }
+
+/**
+ * 榜单
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.getTop = ( req , res ) => {
+
+    let str = ` SELECT f.*,movie.name , movie.img from ( SELECT * FROM filmManage order BY hots DESC LIMIT 0 ,10 ) f INNER JOIN john_movie movie ON f.movieId = movie.id `
+
+    db.insert( str ,( result ) =>{
+
+        res.send({
+            status:200,
+            arr:result
+        })
+    })
+
+}
+
+
+
+
+
 
 exports.birth = ( req , res ) => {
     let str ;

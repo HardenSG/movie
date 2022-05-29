@@ -27,9 +27,18 @@ router.get("/api/getMovieDetail",callback.getMovieDetail)
 //查找用户的订单
 router.get("/getOrder",callback.getOrder)
 
+//榜单
+router.get("/api/getTop",callback.getTop)
+
+
+
+
+
+
+
+
+
 router.get("/api/birth",callback.birth)
-
-
 
 //暴露
 module.exports = router
