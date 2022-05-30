@@ -30,10 +30,11 @@ router.get("/getOrder",callback.getOrder)
 //榜单
 router.get("/api/getTop",callback.getTop)
 
+//取消订单
+router.post("/api/cancelOrder",callback.cancelOrder)
 
-
-
-
+// 支付成功显示支付信息
+router.post("/searchOrder", middleware.searchOrder, callback.searchOrder)
 
 
 

@@ -23,16 +23,7 @@ app.use( err )
 const router = require( "./router/router" )
 app.use( router )
 
-
-
-
-
-
-
-
-
-
-
+//启动服务器
 app.listen( 8088 , ( ) =>{
     console.log("启动");
 }) 
