@@ -19,6 +19,17 @@ exports.searchOrder = ( req , res , next ) => {
     next( )
 }
 
+exports.sendComment = ( req , res , next ) =>{
+    req.message = {
+        email : req.user.user_email ,
+        content: req.body.content ,
+        time: req.body.time ,
+        filmId: req.body.filmId ,
+        originId:req.body.originId
+    }
+    next( )
+}
+
 exports.err = ( err , req , res , next ) => {
     if( err ) res.send({
         code:500,

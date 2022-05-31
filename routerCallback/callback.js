@@ -85,7 +85,7 @@ exports.pay = async ( req ,  res ) => {
 
 /**
 * 接受支付宝返回内容并进行数据的操作
-* @param { 状态码 ， 订单号 } req 
+* @param { 状态码 , 订单号 } req 
 * @param {*} res 
 */
 exports.payAsync = ( req , res ) => {
@@ -95,7 +95,9 @@ exports.payAsync = ( req , res ) => {
 
  if( trade_status == 'TRADE_SUCCESS' ){
 
-     let str = ` UPDATE movie_order SET status = "已支付" WHERE orderId = "${ out_trade_no }"`
+    let time = new Date( ).toLocaleDateString() +"-"+ new Date( ).toLocaleTimeString()
+
+     let str = ` UPDATE movie_order SET status = "已支付" , orderTime = "${ time }" WHERE orderId = "${ out_trade_no }"`
       
      const arr = JSON.parse( body )
      
@@ -124,8 +126,8 @@ exports.payAsync = ( req , res ) => {
 
 /**
  * 获取座位
- * @param {  } req 
- * @param {*} res 
+ * @param { agencyId } req 
+ * @param { status , arr , row } res 
  */
 exports.getSeat = async ( req , res ) => {
 
@@ -149,15 +151,12 @@ exports.getSeat = async ( req , res ) => {
 }
 
 /**
- * 获取数据库电影的数据
+ * 获取排期表电影的数据
  * @param { index } req   limit 索引 
  * @param {*} res 
  */
 exports.getMovie = async ( req , res ) => {
 
-    // const { index } = req.query
-
-    // let str = ` SELECT * FROM john_movie LIMIT ${ index } , 20`
     let str = ` SELECT * FROM filmManage f INNER JOIN john_movie movie ON f.movieId = movie.id `
 
     await db.insert( str , ( result ) => {
@@ -196,8 +195,8 @@ exports.searchMovie = async ( req , res ) => {
 
 /**
  * 获取详细电影信息
- * @param {*} req 
- * @param {*} res 
+ * @param { id } req 
+ * @param { status  , arr } res 
  */
 exports.getMovieDetail = ( req , res ) => {
     
@@ -215,9 +214,9 @@ exports.getMovieDetail = ( req , res ) => {
 }
 
 /**
- * 订单接口
- * @param {*} req 
- * @param {*} res 
+ * 获取订单接口
+ * @param { 请求体获取email } req 
+ * @param { status , 对象数组 } res 
  */
 exports.getOrder = ( req , res ) => {
 
@@ -236,9 +235,9 @@ exports.getOrder = ( req , res ) => {
 }
 
 /**
- * 榜单
+ * 获取前十榜单
  * @param {*} req 
- * @param {*} res 
+ * @param { status , 对象数组 } res 
  */
 exports.getTop = ( req , res ) => {
 
@@ -256,8 +255,8 @@ exports.getTop = ( req , res ) => {
 
 /**
  * 取消订单接口
- * @param { url } req 
- * @param {*} res 
+ * @param { url ： 订单的url } req 
+ * @param { status , msg } res 
  */
 exports.cancelOrder = ( req , res ) =>{
 
@@ -278,8 +277,8 @@ exports.cancelOrder = ( req , res ) =>{
 
 /**
  * 查询订单是否已被支付并返回信息
- * @param {*} req 
- * @param {*} res 
+ * @param { email , orderId } req 
+ * @param { status , 订单信息 } res 
  */
 exports.searchOrder = ( req , res ) =>{
 
@@ -299,6 +298,124 @@ exports.searchOrder = ( req , res ) =>{
                 msg:"伪造了订单信息"
             })
         }
+    })
+}
+
+/**
+ * 获取评论接口
+ * @param { filmId } req 
+ * @param { status , 评论的对象数组 } res 
+ */
+exports.getComment = async ( req , res ) =>{
+
+    // 解构出filmId
+    const { filmId } = req.query
+
+    let str = ` SELECT * from (SELECT * from comments WHERE filmId = ${ filmId } AND orignId = -1) c INNER JOIN users u ON c.email = u.user_email ORDER BY commentId DESC `
+
+    const orign = await db.insert( str , ( result ) =>{
+        return result
+    })
+
+    let ChildStr
+
+    // await orign.map( async ( e , i ) =>{
+    //     //取出当前的commentId
+
+    //     ChildStr = ` SELECT * FROM comments WHERE filmId = ${ filmId } and orignId = ${ e.commentId }`
+
+    //     e.childComment = await db.insert( ChildStr , result  =>{
+    //         return result
+    //     })
+
+    //     console.log(e === orign[i]);
+
+    // })
+
+    // const MAP = async ( e ) =>{
+
+    //         ChildStr = ` SELECT * FROM comments WHERE filmId = ${ filmId } and orignId = ${ e.commentId }`
+    
+    //         e.childComment = await db.insert( ChildStr , result  =>{
+    //             return result
+    //         })
+
+    //         console.log(e.childComment);
+    
+    //         console.log("e === orign[i]");
+        
+    // }
+
+    // orign.map( item =>{
+    //      MAP( item )
+    // })
+
+    // console.log("orign");
+
+    //性能低，要重构
+    for (let i = 0; i < orign.length; i++ ) {
+
+        ChildStr = ` SELECT * from (SELECT * from comments WHERE filmId = ${ filmId } AND orignId  = ${ orign[i].commentId } ) c INNER JOIN users u ON c.email = u.user_email`
+        
+        orign[i].childComment = await db.insert( ChildStr , result  =>{
+            return result
+        })
+
+    }
+
+    res.send({
+        status:200,
+        arr:orign
+    })
+
+}
+
+/**
+ * 发送评论
+ * @param { email , content ,  time , filmId , originId } req 
+ * @param { status , msg } res 
+ */
+exports.sendComment = async ( req , res ) =>{
+
+    //解构出值
+    const { email , content ,  time , filmId , originId } = req.message
+
+    let count = `SELECT commentId as num FROM comments ORDER BY commentId DESC`
+
+    const num = await db.insert( count ,result =>{
+        return ++result[0].num
+    })
+    
+    let str = ` INSERT INTO comments VALUES ( ${ filmId } , "${ email }" , "${ time }","${ content }",${ originId },${ num })` 
+    
+    db.insert( str ,result =>{
+        if( result.affectedRows ){
+            res.send({
+                status:200,
+                msg:"发布成功!"
+            })
+        }
+    })
+
+}
+
+/**
+ * 删除评论的接口
+ * @param { 评论的id } req 
+ * @param { status,msg } res 
+ */
+exports.dropComment = ( req, res ) =>{
+
+    const { id } = req.body
+
+    let str = `DELETE FROM comments WHERE commentId = ${ id }`
+
+    db.insert( str , result =>{
+        console.log(result);
+        res.send({
+            status:200,
+            msg:"删除成功"
+        })
     })
 }
 

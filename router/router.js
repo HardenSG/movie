@@ -1,11 +1,15 @@
 const express = require( "express" )
 
+//express's router
 const router = express.Router( )
 
+//lead into router's callback
 const callback = require("../routerCallback/callback")
 
+//lead into router's middleware
 const middleware = require("../middleWare/middleware")
 
+//----------------------------router's interface----------------------------------------
 //支付接口
 router.post( "/pay", middleware.pay , callback.pay)
 
@@ -35,6 +39,15 @@ router.post("/api/cancelOrder",callback.cancelOrder)
 
 // 支付成功显示支付信息
 router.post("/searchOrder", middleware.searchOrder, callback.searchOrder)
+
+//发送评论的接口
+router.post("/sendComment", middleware.sendComment , callback.sendComment)
+
+//接受评论的接口
+router.get("/api/getComment",callback.getComment)
+
+//删除评论
+router.post("/api/dropComment",callback.dropComment)
 
 
 
