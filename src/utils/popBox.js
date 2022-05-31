@@ -1,6 +1,7 @@
 import { ElNotification } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { ElLoading } from 'element-plus'
+// import { ElMessage } from 'element-plus'
 
 
 const warning = ( title , message ) => {
@@ -30,8 +31,18 @@ const loading = ElLoading.service({
   }, 1000)
 }
 
+const InputBox = ( ) => {
+
+  return ElMessageBox.prompt('请输入评论的内容', '评论', {
+    confirmButtonText: 'OK',
+  })
+    .then( value  => value)
+    .catch( err  => err)
+}
+
 export {
     warning,
     confirmBox,
-    loading
+    loading,
+    InputBox
 }

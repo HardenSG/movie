@@ -24,13 +24,13 @@
 import { onBeforeMount, reactive, ref } from '@vue/runtime-core'
 import { useRoute } from 'vue-router'
 import axios from "axios"
-import { warning , loading , confirmBox} from '@/utils/popBox'
+import {  loading , confirmBox} from '@/utils/popBox'
 
 
 export default {
     name:"SelectMovieReport",
-    props:["array"],
-    setup( props,context ) {
+    props:["array"] ,
+    setup( props ) {
         let items = reactive( {
             content:{ }
         } )
@@ -38,7 +38,7 @@ export default {
         let load = ref( true )
 
         const route = useRoute( )
-
+        
         onBeforeMount( ( ) =>{
             axios({
                 url:"http://localhost:8088/api/getMovieDetail",
@@ -50,15 +50,9 @@ export default {
                 load.value = false
                 console.log(res.data.arr);
             })
-            // let reg = /out_trade_no=\d+/g
-
-            // let regNum = /\d+/g
-
-            // const result = location.hash.match(reg)[0].match( regNum )[0]
-
-            // console.log(result);
         }) 
 
+        //支付接口
         function Pay( ) {
             
             const id = props.array

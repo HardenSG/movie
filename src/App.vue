@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { computed, defineAsyncComponent, onBeforeMount, ref } from '@vue/runtime-core'
+import { computed, defineAsyncComponent, onBeforeMount } from '@vue/runtime-core'
 import { useStore } from 'vuex'
 import axios from 'axios'
 

@@ -64,7 +64,7 @@
 import axios from "axios";
 import { reactive, ref } from "@vue/reactivity";
 import { onBeforeMount, watch } from "@vue/runtime-core";
-import { confirmBox, loading, warning } from "@/utils/popBox";
+import { loading, warning } from "@/utils/popBox";
 
 export default {
   name: "PersonOrder",
@@ -202,7 +202,7 @@ export default {
 
     }
 
-    watch( ( ) =>input.value ,( newValue ) =>{
+    watch( ( ) =>input.value ,( ) =>{
       if( input.value.trim( ) == "" ) {
         tableData.splice(0,tableData.length)
         tableData.push(...filters)

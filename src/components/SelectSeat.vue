@@ -24,7 +24,7 @@
 <script>
 import SelectMovieReport from '@/components/SelectMovieReport'
 import axios from "axios"
-import { warning , confirmBox ,loading } from "@/utils/popBox"
+import { confirmBox } from "@/utils/popBox"
 import { onBeforeMount, reactive ,ref  } from "vue"
 import { useRoute } from 'vue-router'
 
@@ -53,6 +53,7 @@ export default {
             if( node.classList.contains("green") ){
                 node.classList.remove("green")
                 targetArray.splice(targetArray.indexOf( id ) , 1)
+                console.log(targetArray)
             }else{
                 if( targetArray.length >= 5 ){
                     confirmBox( "最多选择五张","提示" )
@@ -60,6 +61,7 @@ export default {
                 }
                 node.classList.add("green")
                 targetArray.push( {id,name} )
+                console.log(targetArray)
             }
 
         }

@@ -18,7 +18,6 @@
 <script>
 import { reactive, ref } from '@vue/reactivity'
 import { computed, defineAsyncComponent } from '@vue/runtime-core'
-import { useStore } from 'vuex'
 
 //异步组件，配合comis
 const me = defineAsyncComponent( ( ) => import("@/components/person/PersonMe.vue") )
