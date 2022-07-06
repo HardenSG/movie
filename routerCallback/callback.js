@@ -219,12 +219,11 @@ exports.getMovieDetail = ( req , res ) => {
  * @param { status , 对象数组 } res 
  */
 exports.getOrder = ( req , res ) => {
-
     //从token中取出email
     const { user_email } = req.user
 
     let str = ` SELECT * FROM movie_order WHERE  email = "${ user_email }" `
-
+    
     db.insert( str ,( result ) =>{
         res.send({
             status:200,
